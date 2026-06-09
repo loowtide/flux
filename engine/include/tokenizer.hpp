@@ -1,6 +1,9 @@
 #ifndef TOKENIZER_HPP
 #define TOKENIZER_HPP
 
+#include <mupdf/fitz/context.h>
+#include <mupdf/fitz/structured-text.h>
+#include <mupdf/fitz/types.h>
 #include<string>
 #include<unordered_set>
 #include<vector>
@@ -31,7 +34,23 @@ class Tokenizer {
     private:
     std::unordered_set<std::string>stopWords;
     void loadStopWords();
+    /*
+     * make tokens from word string
+     */
     void makeToken(std::vector<Token>&tokens,std::string &word,uint32_t &currentPos,const uint32_t &pageNo);
+
+    /*
+     * tokenize line extracted from mupdf line
+     */
+    void tokenizeLine(fz_stext_line* line,std::vector<Token>&tokens,uint32_t &currentPos,const uint32_t &pageNo);
+    /*
+    * tokenize stextpage from mupdf page
+    */
+    void tokenizeStextPage(fz_stext_page *stext_page,std::vector<Token>&tokens,uint32_t &currentPos,const uint32_t &pageNo);
+    /*
+     * tokenize page
+     */
+    void tokenizePage(fz_context *ctx,fz_document* doc,int pageIndex,std::vector<Token>&tokens,uint32_t &currentPos);
 };
 
 #endif
