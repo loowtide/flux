@@ -1,14 +1,13 @@
 #ifndef TOKENIZER_HPP
 #define TOKENIZER_HPP
 
-#include <mupdf/fitz/context.h>
-#include <mupdf/fitz/structured-text.h>
-#include <mupdf/fitz/types.h>
 #include<string>
 #include<unordered_set>
 #include<vector>
 
-#include<mupdf/fitz.h>
+extern "C" {
+#include <mupdf/fitz.h>
+}
 
 /*
  * Token Structure

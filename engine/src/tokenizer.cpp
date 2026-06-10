@@ -1,5 +1,4 @@
 #include "../include/tokenizer.hpp"
-#include <mupdf/fitz.h>
 #include<vector>
 #include<string>
 #include<iostream>
