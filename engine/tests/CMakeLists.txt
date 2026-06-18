@@ -18,25 +18,26 @@ find_library(JBIG2DEC_LIB NAMES jbig2dec)
 find_library(GUMBO_LIB    NAMES gumbo)
 find_library(MUJS_LIB     NAMES mujs)
 
+function(add_unit_test target)
 
-add_executable(tokenizer_test
-tokenizer_test.cpp
-../src/tokenizer.cpp
+  add_executable(${target}
+  ${ARGN}
 )
 
-target_include_directories(
-tokenizer_test
+  target_include_directories(
+${target}
 PRIVATE
 ../include
 )
 
-target_compile_definitions(tokenizer_test
+  target_compile_definitions(
+${target}
 PRIVATE
 TEST_DATA_DIR="${CMAKE_CURRENT_SOURCE_DIR}"
 )
 
 
-target_link_libraries(tokenizer_test
+  target_link_libraries(${target}
 PRIVATE
 GTest::gtest_main
 -Wl,--start-group
@@ -53,5 +54,19 @@ GTest::gtest_main
    ${MUJS_LIB}
 )
 
-include(GoogleTest)
-gtest_discover_tests(tokenizer_test)
+  include(GoogleTest)
+  gtest_discover_tests(${target})
+endfunction()
+
+add_unit_test(
+tokenizer_test
+tokenizer_test.cpp
+../src/tokenizer.cpp
+)
+
+add_unit_test(
+indexer_test
+indexer_test.cpp
+../src/indexer.cpp
+../src/tokenizer.cpp
+)
