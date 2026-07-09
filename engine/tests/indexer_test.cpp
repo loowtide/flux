@@ -38,3 +38,30 @@ TEST_F(TestIndexer, GetPostingForNotExisting){
     auto it=indexer.getPosting("notfound");
     EXPECT_EQ(it, nullptr);
 }
+
+TEST_F(TestIndexer,SearchExistingPhrase){
+    indexer.addDocument(1,tokens);
+    auto it=indexer.phraseSearch({"quick","brown"});
+    ASSERT_NE(it.size(), 0);
+    EXPECT_EQ(it[0].docId,1);
+    EXPECT_EQ(it[0].position,1);
+}
+
+TEST_F(TestIndexer,SearchNonExistingPhrase){
+    indexer.addDocument(1,tokens);
+    auto it=indexer.phraseSearch({"quick","green"});
+    ASSERT_EQ(it.size(), 0);
+}
+
+TEST_F(TestIndexer,AndSearchPhraseExisting){
+    indexer.addDocument(1,tokens);
+    auto it=indexer.andSearch({"quick","lazy"});
+    ASSERT_NE(it.size(), 0);
+    EXPECT_EQ(it[0],1);
+}
+
+TEST_F(TestIndexer,AndSearchPhraseNotExisting){
+    indexer.addDocument(1,tokens);
+    auto it=indexer.andSearch({"quick","green"});
+    ASSERT_EQ(it.size(), 0);
+}
