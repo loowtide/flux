@@ -1,7 +1,8 @@
 #include "../include/indexer.hpp"
 #include<algorithm>
 #include <cstdint>
-#include <string>
+#include<set>
+
 void Indexer::addDocument(uint32_t docId,const std::vector<Token>&tokens){
     for(const auto& token:tokens){
        auto& postings=index[token.text][docId];
@@ -119,4 +120,24 @@ std::vector<const std::map<uint32_t,std::vector<Posting>>*>Indexer::getList(cons
          docIdList.push_back(std::move(ids));
      }
      return intersectAll(docIdList);
+ }
+
+ std::vector<uint32_t>Indexer::orSearch(const std::vector<std::string>&phrase)const{
+     if(phrase.empty()) return {};
+     std::vector<std::string>filtered; //filter phrase for stop words
+     filtered.reserve(phrase.size());
+     for(const auto& word:phrase){
+         if(!isStopWord(word)){
+             filtered.push_back(word);
+         }
+     }
+     if(filtered.empty()) return {};
+     std::vector<const std::map<uint32_t,std::vector<Posting>>*>lists=getList(filtered);
+     std::set<uint32_t>docIdList;
+     for(const auto* p:lists){
+         for(const auto& [docId,_]:*p){
+             docIdList.insert(docId);
+         }
+     }
+     return std::vector<uint32_t>(docIdList.begin(),docIdList.end());
  }

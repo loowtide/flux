@@ -41,7 +41,7 @@ class Indexer{
         std::vector <uint32_t>andSearch(const std::vector<std::string>&phrase) const;
 
         // fallback or search -> give files with at least one word
-        std::vector<uint32_t>orSearch(const std::vector<std::string>&phrase);
+        std::vector<uint32_t>orSearch(const std::vector<std::string>&phrase)const;
 
         uint32_t getDocCount() const{
             return documentsPaths.size();

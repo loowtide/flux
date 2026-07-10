@@ -140,3 +140,42 @@ TEST_F(TestIndexer,AndSearchIgnoresStopWords){
     ASSERT_EQ(it.size(),1u);
     EXPECT_EQ(it[0],1u);
 }
+
+//-------------------orSearch-------------------------
+
+TEST_F(TestIndexer,orSearchExistingPhrase){
+    std::vector<Token>token={
+        {"the",1,1,true},
+        {"quick",1,2,true}
+    };
+    indexer.addDocument(1,token);
+    auto it=indexer.orSearch({"quick","the"});
+    EXPECT_EQ(it.size(),1u);
+}
+
+TEST_F(TestIndexer,orSearchExistingPhraseMultipleDocuments){
+    std::vector<Token>token={
+        {"the",1,1,true},
+        {"quick",1,2,true}
+    };
+    indexer.addDocument(1,token);
+    std::vector<Token>token2={
+        {
+            "fox",3,1,false
+        }
+    };
+    indexer.addDocument(5,token2);
+    auto it=indexer.orSearch({"fox","quick"});
+    ASSERT_EQ(it.size(),2u);
+    EXPECT_EQ(it[1],5u);
+}
+
+TEST_F(TestIndexer,orSearchEmptyPhrase){
+    std::vector<Token>token={
+        {"the",1,1,true},
+        {"quick",1,2,true}
+    };
+    indexer.addDocument(1,token);
+    auto it=indexer.orSearch({""});
+    ASSERT_TRUE(it.empty());
+}
