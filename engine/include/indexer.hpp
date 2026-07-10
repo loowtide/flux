@@ -56,6 +56,7 @@ class Indexer{
         std::unordered_map<std::string ,std::map<uint32_t,std::vector<Posting>>>index;
 
         std::unordered_map<uint32_t ,std::string>documentsPaths;
+        std::vector<const std::map<uint32_t,std::vector<Posting>>*>getList(const std::vector<std::string> &phrase) const;
 };
 
 #endif

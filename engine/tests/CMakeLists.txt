@@ -68,5 +68,5 @@ add_unit_test(
 indexer_test
 indexer_test.cpp
 ../src/indexer.cpp
-../src/tokenizer.cpp
+#../src/tokenizer.cpp
 )

@@ -16,10 +16,10 @@ extern "C" {
 
 struct Token
 {
-    uint32_t position;
-    bool isStopWord;
     std::string text;
+    uint32_t position;
    uint32_t pageNo;
+    bool isStopWord;
 };
 
 class Tokenizer {
