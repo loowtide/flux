@@ -1,3 +1,4 @@
+#include <cstdint>
 #include<gtest/gtest.h>
 #include "../include/indexer.hpp"
 
@@ -150,7 +151,7 @@ TEST_F(TestIndexer,orSearchExistingPhrase){
     };
     indexer.addDocument(1,token);
     auto it=indexer.orSearch({"quick","the"});
-    EXPECT_EQ(it.size(),1u);
+    ASSERT_EQ(it.size(),1u);
 }
 
 TEST_F(TestIndexer,orSearchExistingPhraseMultipleDocuments){
@@ -173,9 +174,247 @@ TEST_F(TestIndexer,orSearchExistingPhraseMultipleDocuments){
 TEST_F(TestIndexer,orSearchEmptyPhrase){
     std::vector<Token>token={
         {"the",1,1,true},
-        {"quick",1,2,true}
+        {"quick",1,2,false}
     };
     indexer.addDocument(1,token);
     auto it=indexer.orSearch({""});
     ASSERT_TRUE(it.empty());
+}
+
+TEST_F(TestIndexer,scoreOfExistingTerm){
+    std::vector<Token>token={
+        {"fox",1,1,false},
+        {"quick",1,2,false}
+    };
+    indexer.addDocument(1,token);
+    std::vector<Token>token2={
+        {"fox",1,1,false},
+        {"quick",1,2,false},
+        {"quick",2,1,false},
+        {"fox",3,1,false}
+    };
+    indexer.addDocument(2,token2);
+    auto it=indexer.rankedOrSearch({"quick"});
+    ASSERT_FALSE(it.empty());
+    ASSERT_EQ(it.size(),2u);
+
+    std::unordered_set<uint32_t>resultIds;
+    for(const auto &ds:it){
+        resultIds.insert(ds.docId);
+    }
+    ASSERT_TRUE(resultIds.count(1));
+    ASSERT_TRUE(resultIds.count(2));
+
+    auto score=[&](uint32_t id){
+        for(const auto& ds:it){
+            if(ds.docId==id) return ds.score;
+        }
+        return -1.0;
+    };
+    ASSERT_GE(score(2),score(1));
+    ASSERT_NEAR(score(1), 0.693147, 1e-4);
+    ASSERT_NEAR(score(2), 1.386294, 1e-4);
+}
+
+TEST_F(TestIndexer,scoreOfNonExistingTerm){
+    std::vector<Token>token={
+        {"fox",1,1,false},
+        {"quick",1,2,false}
+    };
+    indexer.addDocument(1,token);
+    std::vector<Token>token2={
+        {"fox",1,1,false},
+        {"quick",1,2,false},
+        {"quick",2,1,false},
+        {"fox",3,1,false}
+    };
+    indexer.addDocument(2,token2);
+    auto it=indexer.rankedOrSearch({"quic"});
+    ASSERT_TRUE(it.empty());
+}
+
+TEST_F(TestIndexer,rankedOrSearchStopWords){
+    std::vector<Token>token={
+        {"fox",1,1,false},
+    };
+    indexer.addDocument(1,token);
+    auto it=indexer.rankedOrSearch({"fox","the"});
+    auto it2=indexer.rankedOrSearch({"fox"});
+    ASSERT_EQ(it.size(),it2.size());
+    ASSERT_EQ(it.size(),1u);
+    ASSERT_NEAR(it[0].score,it2[0].score,1e-9);
+}
+
+TEST_F(TestIndexer,rankedAndSearchBasic){
+    std::vector<Token>token1={
+        {"fox",1,1,false},
+        {"quick",2,1,false},
+    };
+    indexer.addDocument(1,token1);
+    std::vector<Token>token2={
+        {"quick",1,1,false},
+        {"quick",2,1,false},
+        {"fox",3,1,false},
+    };
+    std::vector<Token>token3={
+      {"quick",1,1,false},
+    };
+    indexer.addDocument(2,token2);
+    indexer.addDocument(3,token3);
+    auto it=indexer.rankedAndSearch({"quick","fox"});;
+    ASSERT_EQ(it.size(),2u);
+
+    std::unordered_set<uint32_t>resultIds;
+    for(const auto& ds:it){
+        resultIds.insert(ds.docId);
+    }
+    ASSERT_TRUE(resultIds.count(1));
+    ASSERT_TRUE(resultIds.count(2));
+    ASSERT_FALSE(resultIds.count(3));
+
+    auto score=[&](uint32_t id){
+        for(const auto &ds:it){
+            if(ds.docId==id) return ds.score;
+        }
+        return -1.0;
+    };
+    ASSERT_NEAR(score(1),1.540445,1e-4);
+    ASSERT_NEAR(score(2),2.233592,1e-4);
+}
+
+
+TEST_F(TestIndexer,rankedAndSearchMissingTermReturnsEmpty){
+    std::vector<Token>token={
+        {"quick",1,1,false},
+    };
+    indexer.addDocument(1,token);
+    auto it=indexer.rankedAndSearch({"quick","fox"});
+    ASSERT_TRUE(it.empty());
+}
+
+TEST_F(TestIndexer,rankedAndSearchEmptyQuery){
+    std::vector<Token>token={
+        {"quick",1,1,false},
+        {"fox",2,1,false}
+    };
+    indexer.addDocument(1,token);
+    auto it=indexer.rankedAndSearch({});
+    ASSERT_TRUE(it.empty());
+}
+TEST_F(TestIndexer,rankedAndSearchOnlyStopWords){
+    std::vector<Token>token={
+        {"quick",1,1,false},
+        {"fox",2,1,false}
+    };
+    indexer.addDocument(1,token);
+    auto it=indexer.andSearch({"the","a","is"});
+    ASSERT_TRUE(it.empty());
+}
+
+TEST_F(TestIndexer,rankedAndSearchNoIntersection){
+    std::vector<Token>token={
+        {"quick",1,1,false},
+        {"fox",2,1,false}
+    };
+    indexer.addDocument(1,token);
+    std::vector<Token>token2={
+      {"killa",1,2,false}
+    };
+    auto it=indexer.rankedAndSearch({"quick","killa"});
+    ASSERT_TRUE(it.empty());
+}
+
+TEST_F(TestIndexer,rankedPhraseSearchExact){
+    std::vector<Token>token={
+        {"quick",1,1,false},
+        {"brown",2,1,false},
+        {"fox",3,1,false}
+    };
+    indexer.addDocument(1,token);
+    auto it=indexer.rankedPhraseSearch({"quick","brown","fox"});
+    ASSERT_EQ(it.size(), 1u);
+    ASSERT_EQ(it[0].docId,1u);
+    ASSERT_NEAR(it[0].score,2.079442,1e-4);
+}
+
+TEST_F(TestIndexer,rankedPhraseSearchNonAdjacent){
+    std::vector<Token>token={
+        {"quick",1,1,false},
+        {"brown",2,2,false},
+        {"fox",3,1,false}
+    };
+    indexer.addDocument(1,token);
+    auto it=indexer.rankedPhraseSearch({"quick","brown","fox"});
+    ASSERT_TRUE(it.empty());
+}
+
+TEST_F(TestIndexer,rankedAndSearchMultipleDocs){
+    std::vector<Token>token1={
+        {"quick",1,1,false},
+        {"fox",2,1,false}
+    };
+    indexer.addDocument(1,token1);
+    std::vector<Token>token2={
+        {"quick",1,1,false},
+        {"fox",2,1,false},
+        {"quick",3,1,false},
+        {"fox",4,1,false},
+    };
+    indexer.addDocument(2,token2);
+    auto it=indexer.rankedPhraseSearch({"quick","fox"});;
+    ASSERT_EQ(it.size(),2u);
+
+    auto score=[&](uint32_t id){
+        for(const auto &ds:it){
+            if(ds.docId==id) return ds.score;
+        }
+        return -1.0;
+    };
+    ASSERT_NEAR(score(1),1.386294,1e-4);
+    ASSERT_NEAR(score(2),2.772589,1e-4);
+    ASSERT_GE(score(2),score(1));
+}
+
+TEST_F(TestIndexer,rankedPhraseSearchEmptyQuery){
+    std::vector<Token>token={
+        {"quick",1,1,false},
+        {"fox",2,1,false}
+    };
+    indexer.addDocument(1,token);
+    auto it=indexer.rankedPhraseSearch({});
+    ASSERT_TRUE(it.empty());
+}
+
+TEST_F(TestIndexer,rankedPhraseSearchMissingTermReturnsEmpty){
+    std::vector<Token>token={
+        {"quick",1,1,false},
+        {"fox",2,1,false}
+    };
+    indexer.addDocument(1,token);
+    auto it=indexer.rankedPhraseSearch({"quick","brown","fox"});
+    ASSERT_TRUE(it.empty());
+}
+
+TEST_F(TestIndexer,rankedPhraseSearchSingleWords){
+    std::vector<Token>token={
+        {"fox",2,1,false}
+    };
+    indexer.addDocument(1,token);
+    std::vector<Token>token2={
+        {"fox",1,1,false},
+        {"fox",2,1,false}
+    };
+    indexer.addDocument(2,token2);
+    auto it=indexer.rankedPhraseSearch({"fox"});
+    ASSERT_EQ(it.size(),2u);
+
+    auto score=[&](uint32_t id){
+        for(const auto &ds:it){
+            if(ds.docId==id) return ds.score;
+        }
+        return -1.0;
+    };
+
+    ASSERT_NEAR(score(1),0.693147 , 1e-5);
+    ASSERT_NEAR(score(2),1.386294 , 1e-5);
 }

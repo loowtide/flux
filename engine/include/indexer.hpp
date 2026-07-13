@@ -17,6 +17,11 @@ struct PhraseHit{
     uint32_t pageNo;
 };
 
+struct DocScore{
+    uint32_t docId;
+    double score;
+};
+
 class Indexer{
     public:
         /*
@@ -33,7 +38,13 @@ class Indexer{
             auto &postings=index[word][docId];
             postings.push_back(p);
         }
+        void addDocPath(uint32_t id,std::string &path){
+            documentsPaths[id]=path;
+        }
 
+        uint32_t getDocCount() const{
+            return seenIds.size();
+        }
         // full phrase search
         std::vector<PhraseHit>phraseSearch(const std::vector<std::string>&phrase) const;
 
@@ -43,13 +54,15 @@ class Indexer{
         // fallback or search -> give files with at least one word
         std::vector<uint32_t>orSearch(const std::vector<std::string>&phrase)const;
 
-        uint32_t getDocCount() const{
-            return documentsPaths.size();
-        }
+        /*
+         * Ranked Searches
+         */
 
-        void addDocPath(uint32_t id,std::string &path){
-            documentsPaths[id]=path;
-        }
+        std::vector<DocScore>rankedPhraseSearch(const std::vector<std::string>&phrase) const;
+
+        std::vector<DocScore>rankedAndSearch(const std::vector<std::string>&phrase) const;
+
+        std::vector<DocScore>rankedOrSearch(const std::vector<std::string>&phrase) const;
 
     private:
         //master index
@@ -57,6 +70,16 @@ class Indexer{
 
         std::unordered_map<uint32_t ,std::string>documentsPaths;
         std::vector<const std::map<uint32_t,std::vector<Posting>>*>getList(const std::vector<std::string> &phrase) const;
+
+        std::unordered_set<uint32_t>seenIds;
+
+        //This will calculate the TF-IDF score.
+        // Iterates the candidate set and look for each docId in each term's Posting
+        // reducing search space (iterate only the set not the corpus)
+        std::vector<DocScore>scoreAndSort(const std::vector<uint32_t>&docIds,const std::vector<const std::map<uint32_t,std::vector<Posting>>*>&lists) const;
+
+        std::vector<std::string>filterStopWords(const std::vector<std::string>&phrase) const;
+
 };
 
 #endif

@@ -1,18 +1,7 @@
 # 🔍 Flux
+![C++](https://img.shields.io/badge/C%2B%2B-17-00599C?logo=cplusplus&logoColor=white) ![CMake](https://img.shields.io/badge/CMake-3.15%2B-064F8C?logo=cmake&logoColor=white) ![Python](https://img.shields.io/badge/Python-3.10%2B-3776AB?logo=python&logoColor=white) ![Django](https://img.shields.io/badge/Django-backend-092E20?logo=django&logoColor=white) ![Tests](https://img.shields.io/badge/tests-GoogleTest-brightgreen) ![License](https://img.shields.io/badge/license-MIT-lightgrey)
 
 > A fast inverted-index search engine with native PDF tokenization — phrase and boolean queries out of the box.
-
-![C++](https://img.shields.io/badge/C%2B%2B-17-00599C?logo=cplusplus&logoColor=white)
-
-![CMake](https://img.shields.io/badge/CMake-3.15%2B-064F8C?logo=cmake&logoColor=white)
-
-![Python](https://img.shields.io/badge/Python-3.10%2B-3776AB?logo=python&logoColor=white)
-
-![Django](https://img.shields.io/badge/Django-backend-092E20?logo=django&logoColor=white)
-
-![Tests](https://img.shields.io/badge/tests-GoogleTest-brightgreen)
-
-![License](https://img.shields.io/badge/license-MIT-lightgrey)
 
 Flux indexes PDF documents term-by-term with positional data, supporting search queries. A Django backend exposes the engine over HTTP.
 

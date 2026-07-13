@@ -1,6 +1,7 @@
 #ifndef TOKENIZER_HPP
 #define TOKENIZER_HPP
 
+#include <cstdint>
 #include<string>
 #include<unordered_set>
 #include<vector>
