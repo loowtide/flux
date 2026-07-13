@@ -1,6 +1,7 @@
 #include "../include/indexer.hpp"
 #include<algorithm>
 #include<set>
+#include<cmath>
 
 void Indexer::addDocument(uint32_t docId,const std::vector<Token>&tokens){
     seenIds.insert(docId);
