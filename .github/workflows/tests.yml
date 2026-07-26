@@ -28,11 +28,12 @@ jobs:
         run: uv sync
 
       - name: Configure
-        run: cmake -B build
+        run: |
+         uv run cmake -B build
 
       - name: Build
-        run: cmake --build build
+        run: uv run --build build
 
       - name: Run tests
         working-directory: build
-        run: ctest --verbose
+        run: uv run ctest --verbose
