@@ -7,4 +7,24 @@ wheels/
 *.egg-info
 
 # Virtual environments
-.venv
+.venv/
+venv/
+.env
+
+# CMake build output
+build/
+compile_commands.json
+
+# Cache & local config
+.cache/
+.python-version
+
+# IDE
+.zed
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Logs
+*.log
