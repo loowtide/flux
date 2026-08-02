@@ -1,0 +1,55 @@
+
+{% extends "base.html" %}
+
+{% block title %}Flux Search{% endblock %}
+
+{% block content %}
+<div class="hero-wrap">
+  <div class="search-shell">
+
+    <h1 class="logo-title brand">
+      <span class="brand-accent">Flux</span> Search
+    </h1>
+
+    <form class="search-bar" role="search" action="{% url 'search:search' %}" method="get" id="search-form-id">
+      <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+        <circle cx="11" cy="11" r="8"></circle>
+        <line x1="21" y1="21" x2="16.65" y2="16.65"></line>
+      </svg>
+      <input type="text" name="q" class="search-input" placeholder="Search your documents..." autocomplete="off">
+    </form>
+
+    <input type="checkbox" id="upload-toggle">
+
+    <div class="action-row">
+      <label for="upload-toggle" class="btn-flux btn-flux-primary">+ Add document</label>
+      <button type="submit" form="search-form-id" class="btn-flux">Search</button>
+    </div>
+
+    <div class="upload-zone">
+      <form  action="{% url 'search:upload' %}" method="post" enctype="multipart/form-data">
+        {% csrf_token %}
+        <p>Choose a file to index</p>
+        <input type="file" name="file" class="form-control mb-3" multiple required>
+        <button type="submit" class="btn-flux btn-flux-primary">Upload</button>
+      </form>
+    </div>
+
+    <div class="doc-list">
+      {% for doc in documents %}
+      <div class="doc-chip">
+        <span class="doc-name">{{ doc.file_name }}</span>
+        <form action="{% url 'search:delete' doc.doc_id %}" method="post" class="m-0">
+          {% csrf_token %}
+          <button type="submit" class="doc-remove">Remove</button>
+        </form>
+      </div>
+      {% empty %}
+      <p class="footer-note">No documents yet — add one above.</p>
+      {% endfor %}
+    </div>
+
+    <p class="footer-note">Documents are indexed for this session only.</p>
+  </div>
+</div>
+{% endblock %}
