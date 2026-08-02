@@ -1,6 +1,7 @@
 #include <pybind11/cast.h>
 #include <pybind11/detail/common.h>
 #include <pybind11/pybind11.h>
+#include <pybind11/stl.h>
 #include "../include/indexer.hpp"
 #include "../include/tokenizer.hpp"
 
@@ -8,7 +9,7 @@
 namespace py = pybind11;
 
 PYBIND11_MODULE(flux, m){
-    m.doc()="FLux bindings";
+    m.doc()="Flux bindings";
 
     py::class_<Token>(m,"Token")
         .def(py::init<>())
@@ -35,7 +36,7 @@ PYBIND11_MODULE(flux, m){
 
     py::class_<Tokenizer>(m,"Tokenizer")
         .def(py::init<>())
-        .def("tokenize",&Tokenizer::tokenize,py::arg("text"));
+        .def("tokenize",&Tokenizer::tokenize,py::arg("path"));
 
     py::class_<Indexer>(m,"Indexer")
         .def(py::init<>())

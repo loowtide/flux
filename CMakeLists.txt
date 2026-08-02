@@ -18,7 +18,11 @@ find_package(pybind11 REQUIRED)
 pybind11_add_module(flux
 engine/src/bindings.cpp
 engine/src/indexer.cpp
+engine/src/tokenizer.cpp
 )
+
+find_library(MUPDF_LIB mupdf REQUIRED)
+target_link_libraries(flux PRIVATE ${MUPDF_LIB})
 
 target_include_directories(flux PRIVATE engine/include)
 
