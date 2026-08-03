@@ -17,12 +17,23 @@ jobs:
           sudo apt-get update
           sudo apt-get install -y cmake  libgtest-dev libmupdf-dev libfreetype6-dev libharfbuzz-dev libjpeg-dev libopenjp2-7-dev libjbig2dec0-dev zlib1g-dev libgumbo-dev libmujs-dev
 
+
+      - name: Set up uv
+        uses: astral-sh/setup-uv@11f9893b081a58869d3b5fccaea48c9e9e46f990
+        with:
+          enable-cache: true
+          version: "latest"
+
+      - name: Install python dependencies
+        run: uv sync
+
       - name: Configure
-        run: cmake -B build
+        run: |
+         uv run cmake -B build
 
       - name: Build
-        run: cmake --build build
+        run: uv run cmake --build build
 
       - name: Run tests
         working-directory: build
-        run: ctest --verbose
+        run: uv run ctest --verbose
