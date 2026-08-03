@@ -23,14 +23,11 @@ struct DocScore{
 };
 
 class Indexer{
-    friend class Persist;
     public:
         /*
          * add tokens from document to master index
          */
         void addDocument(uint32_t docId,const std::vector<Token>&tokens);
-
-        void removeDocument(uint32_t docId);
 
         /*
          * return map of {docId->{Posting}}
@@ -41,7 +38,7 @@ class Indexer{
             auto &postings=index[word][docId];
             postings.push_back(p);
         }
-        void addDocPath(uint32_t id,const std::string &path){
+        void addDocPath(uint32_t id,std::string &path){
             documentsPaths[id]=path;
         }
 
@@ -82,8 +79,6 @@ class Indexer{
         std::vector<DocScore>scoreAndSort(const std::vector<uint32_t>&docIds,const std::vector<const std::map<uint32_t,std::vector<Posting>>*>&lists) const;
 
         std::vector<std::string>filterStopWords(const std::vector<std::string>&phrase) const;
-
-        std::unordered_map<uint32_t,std::unordered_set<std::string>>docWords;
 
 };
 

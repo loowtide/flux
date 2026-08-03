@@ -1,48 +1,24 @@
 #include "../include/indexer.hpp"
-#include <cstdint>
-#include<unordered_set>
-#include<set>
 #include<algorithm>
+#include<set>
 #include<cmath>
 
 void Indexer::addDocument(uint32_t docId,const std::vector<Token>&tokens){
     seenIds.insert(docId);
-    std::unordered_set<std::string>touchedWords;
-    touchedWords.reserve(tokens.size());
-
     for(const auto& token:tokens){
        auto& postings=index[token.text][docId];
       postings.push_back({token.position,token.pageNo});
-      touchedWords.insert(token.text);
     }
     //robust check (sort)
-   for (const auto& word: touchedWords){
-        auto& postings=index[word][docId];
+   /*  for (const auto& token: tokens){
+        auto& postings=index[token.text][docId];
         std::sort(postings.begin(),postings.end(),[](const Posting&a ,const Posting&b){
             return a.position<b.position;
         });
     }
-    auto &tracked=docWords[docId];
-    tracked.insert(touchedWords.begin(),touchedWords.end());
+    */
 }
-
-void Indexer::removeDocument(uint32_t docId){
-    auto wordsIt=docWords.find(docId);
-    if(wordsIt==docWords.end()) return;
-    for(const auto& word:docWords[docId]){
-        auto indexIt=index.find(word);
-        if(indexIt==index.end()) continue;
-        auto &docMap=indexIt->second;
-        docMap.erase(docId);
-        if(docMap.empty()) index.erase(indexIt);
-    }
-    docWords.erase(wordsIt);
-    documentsPaths.erase(docId);
-    seenIds.erase(docId);
-}
-
-
-const std::map<uint32_t,std::vector<Posting>>* Indexer::getPosting(const std::string &word) const {
+ const std::map<uint32_t,std::vector<Posting>>* Indexer::getPosting(const std::string &word) const {
      auto it=index.find(word);
      if(it!=index.end()){
          return &it->second;
@@ -56,7 +32,9 @@ std::vector<const std::map<uint32_t,std::vector<Posting>>*>Indexer::getList(cons
         std::vector<const std::map<uint32_t,std::vector<Posting>>*>lists;
         lists.reserve(phrase.size());
         for(const auto &word:phrase){
-            lists.push_back(getPosting(word));
+            const auto *p=getPosting(word);
+            if(!p) continue;
+            lists.push_back(p);
         }
         return lists;
 }
@@ -100,16 +78,11 @@ std::vector<const std::map<uint32_t,std::vector<Posting>>*>Indexer::getList(cons
      if(phrase.empty())
          return {};
      std::vector<const std::map<uint32_t,std::vector<Posting>>*>lists=getList(phrase);
-
-     for(const auto* l:lists){
-         if(!l) return {}; //word missing
-     }
-
+     if(lists.size()!=phrase.size()) return {};
      const auto *firstWord=lists[0];
      auto byPosition=[](const Posting &p,size_t pos){
        return p.position<pos;
      };
-
      for(const auto &[docId,positions]: *firstWord){
          for(const auto &pos: positions){
              bool match=true;
@@ -143,15 +116,12 @@ std::vector<const std::map<uint32_t,std::vector<Posting>>*>Indexer::getList(cons
      std::vector<std::string>filtered=filterStopWords(phrase); //filter phrase for stop words
      if(filtered.empty()) return {};
      std::vector<const std::map<uint32_t,std::vector<Posting>>*>lists=getList(filtered);
-
-     for(const auto* l:lists){
-         if(!l) return {}; //word missing
-     }
+     if(lists.size()!=filtered.size()) return {};
 
      std::vector<std::vector<uint32_t>>docIdList;
      docIdList.reserve(lists.size());
      for(const auto *p:lists){
-         if(!p or p->empty()) return {};
+         if(p->empty()) return {};
          std::vector<uint32_t>ids;
          ids.reserve(p->size());
          for(const auto& [docId,_]:*p)ids.push_back(docId);
@@ -167,7 +137,6 @@ std::vector<const std::map<uint32_t,std::vector<Posting>>*>Indexer::getList(cons
      std::vector<const std::map<uint32_t,std::vector<Posting>>*>lists=getList(filtered);
      std::set<uint32_t>docIdList;
      for(const auto* p:lists){
-         if(!p) continue;
          for(const auto& [docId,_]:*p){
              docIdList.insert(docId);
          }
@@ -217,13 +186,10 @@ std::vector<const std::map<uint32_t,std::vector<Posting>>*>Indexer::getList(cons
      std::vector<std::string>filtered=filterStopWords(phrase);
      if(filtered.empty()) return {};
      std::vector<const std::map<uint32_t,std::vector<Posting>>*>lists=getList(filtered);
-     for(const auto* l:lists){
-         if(!l) return {}; //word missing
-     }
+     if(lists.empty()) return {};
 
      std::unordered_set<uint32_t>docIdSet;
      for(const auto *p:lists){
-         if(!p) continue;
          for(const auto &[docId,_]:*p ){
              docIdSet.insert(docId);
          }
@@ -238,14 +204,12 @@ std::vector<const std::map<uint32_t,std::vector<Posting>>*>Indexer::getList(cons
      std::vector<std::string>filtered=filterStopWords(phrase);
      if(filtered.empty()) return {};
      std::vector<const std::map<uint32_t,std::vector<Posting>>*>lists=getList(filtered);
-     for(const auto* l:lists){
-         if(!l) return {}; //word missing
-     }
+     if(lists.size()!=filtered.size()) return {};
 
      std::vector<std::vector<uint32_t>>docIdList;
      docIdList.reserve(lists.size());
      for(const auto *p:lists){
-         if(!p or p->empty()) return {};
+         if(p->empty()) return {};
          std::vector<uint32_t>ids;
          ids.reserve(p->size());
          for(const auto &[docId,_]:*p){
